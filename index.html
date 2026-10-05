@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <title>ULTIMOKM</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">ULTIMOKM</div>
+    <div id="conn-pill" class="pill pill-off">Non connesso</div>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <!-- Connessione ---------------------------------------------------------->
+  <main id="screen-connect" class="screen">
+    <section class="card">
+      <h1>Configura il faretto</h1>
+      <p>Avvicinati al dispositivo alimentato e tocca il pulsante: compariranno i dispositivi con nome <b>ULTIMOKM-…</b>.</p>
+      <button id="btn-connect" class="btn primary big">Cerca dispositivo</button>
+      <p id="connect-msg" class="msg" hidden></p>
+    </section>
+    <section id="no-bt" class="card warn" hidden>
+      <h2>Bluetooth non disponibile in questo browser</h2>
+      <p>Su iPhone Safari non supporta il Bluetooth dalle pagine web. Installa l'app gratuita
+        <b>Bluefy – Web BLE Browser</b> dall'App Store e apri questa pagina da lì.</p>
+      <p>Su Android usa Chrome.</p>
+    </section>
+    <section class="card subtle">
+      <h2>Primo utilizzo</h2>
+      <ol>
+        <li>Alla prima connessione iPhone chiede di <b>abbinare</b> il dispositivo: tocca <b>Abbina</b>.</li>
+        <li>Il primo telefono collegato diventa quello autorizzato.</li>
+        <li>Per autorizzare un altro telefono premi brevemente il pulsante <b>BOOT</b> sulla scheda
+          (i faretti lampeggiano rapidamente): hai 5 minuti.</li>
+      </ol>
+    </section>
+  </main>
+
+  <!-- Non autorizzato ------------------------------------------------------>
+  <main id="screen-claim" class="screen" hidden>
+    <section class="card">
+      <h1>Telefono non autorizzato</h1>
+      <p>Questo dispositivo è già associato a un altro telefono.</p>
+      <p>Per autorizzare questo telefono premi <b>brevemente</b> il pulsante <b>BOOT</b> sulla scheda
+        (i faretti lampeggiano rapidamente per un secondo), poi tocca:</p>
+      <button id="btn-claim" class="btn primary big">Autorizza questo telefono</button>
+      <p id="claim-msg" class="msg" hidden></p>
+    </section>
+  </main>
+
+  <!-- Configurazione ------------------------------------------------------->
+  <div id="screen-main" hidden>
+    <nav class="tabs">
+      <button data-tab="stato" class="tab active">Stato</button>
+      <button data-tab="wifi" class="tab">Wi-Fi</button>
+      <button data-tab="servizio" class="tab">Servizio</button>
+      <button data-tab="faretti" class="tab">Faretti</button>
+      <button data-tab="altro" class="tab">Altro</button>
+    </nav>
+
+    <main class="screen">
+      <!-- STATO -->
+      <section id="tab-stato" class="tabpane">
+        <div class="card">
+          <h2>Faretti</h2>
+          <div class="leds">
+            <div class="led"><span id="led1" class="dot"></span>Faretto 1</div>
+            <div class="led"><span id="led2" class="dot"></span>Faretto 2</div>
+          </div>
+          <p id="st-signal" class="big-status">—</p>
+          <button id="btn-stop-main" class="btn danger" hidden>Ferma segnalazione</button>
+        </div>
+        <div class="card">
+          <h2>Wi-Fi</h2>
+          <dl class="kv">
+            <dt>Stato</dt><dd id="st-wifi">—</dd>
+            <dt>Rete</dt><dd id="st-ssid">—</dd>
+            <dt>Indirizzo IP</dt><dd id="st-ip">—</dd>
+            <dt>Segnale</dt><dd id="st-rssi">—</dd>
+          </dl>
+          <p id="st-wifi-err" class="msg err" hidden></p>
+        </div>
+        <div class="card">
+          <h2>Servizio ordini</h2>
+          <dl class="kv">
+            <dt>Ultima richiesta</dt><dd id="st-api">—</dd>
+            <dt>Esito</dt><dd id="st-api-res">—</dd>
+            <dt>Prossima</dt><dd id="st-api-next">—</dd>
+            <dt>Errori di fila</dt><dd id="st-api-fail">—</dd>
+          </dl>
+          <p id="st-api-detail" class="msg small" hidden></p>
+          <button id="btn-poll" class="btn">Interroga ora</button>
+        </div>
+        <div class="card">
+          <h2>Ordini</h2>
+          <dl class="kv">
+            <dt>ID di riferimento</dt><dd id="st-saved" class="mono">—</dd>
+            <dt>Ultimo ID ricevuto</dt><dd id="st-rx" class="mono">—</dd>
+            <dt>Ultimo confronto</dt><dd id="st-decision">—</dd>
+          </dl>
+          <p class="note">Il servizio restituisce solo l'ultimo ordine: se ne arrivano più di uno tra due
+            interrogazioni, il faretto segnala un solo cambiamento. Non è un conteggio degli ordini.</p>
+        </div>
+      </section>
+
+      <!-- WI-FI -->
+      <section id="tab-wifi" class="tabpane" hidden>
+        <div class="card">
+          <h2>Rete attuale</h2>
+          <p id="wifi-current">—</p>
+        </div>
+        <div class="card">
+          <h2>Scegli la rete</h2>
+          <button id="btn-scan" class="btn">Cerca reti</button>
+          <ul id="net-list" class="nets"></ul>
+          <label class="check"><input type="checkbox" id="wifi-manual"> Rete nascosta o inserimento manuale</label>
+          <label id="ssid-row" hidden>Nome rete (SSID)
+            <input id="wifi-ssid" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="32">
+          </label>
+          <p id="wifi-selected" class="selected" hidden></p>
+          <label>Password
+            <div class="pw">
+              <input id="wifi-pass" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="64">
+              <button id="btn-showpw" class="btn small" type="button">Mostra</button>
+            </div>
+          </label>
+          <p class="note">Solo reti a 2,4 GHz. La nuova rete viene provata prima di sostituire quella attuale:
+            se non funziona, il dispositivo torna alla rete precedente.</p>
+          <button id="btn-wifi" class="btn primary">Connetti e verifica</button>
+          <p id="wifi-msg" class="msg" hidden></p>
+        </div>
+      </section>
+
+      <!-- SERVIZIO -->
+      <section id="tab-servizio" class="tabpane" hidden>
+        <div class="card">
+          <h2>Servizio web</h2>
+          <label>Indirizzo (URL)
+            <input id="api-url" type="url" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="256">
+          </label>
+          <p class="note">Richiesta <b>GET</b> senza autenticazione, risposta JSON <code>{"id": "…"}</code>.
+            Il certificato HTTPS del server viene verificato.</p>
+          <label>Intervallo tra le richieste (secondi)
+            <input id="api-interval" type="number" inputmode="numeric" min="5" max="3600">
+          </label>
+          <label>Attesa massima dopo errori ripetuti (secondi)
+            <input id="api-backoff" type="number" inputmode="numeric" min="5" max="3600">
+          </label>
+          <p class="note">Dopo un errore l'attesa raddoppia a ogni tentativo fallito, fino a questo valore.</p>
+          <button id="btn-api" class="btn primary">Salva</button>
+          <p id="api-msg" class="msg" hidden></p>
+        </div>
+      </section>
+
+      <!-- FARETTI -->
+      <section id="tab-faretti" class="tabpane" hidden>
+        <div class="card">
+          <h2>Segnalazione di un nuovo ordine</h2>
+          <label>Modalità
+            <select id="sig-mode">
+              <option value="blink">Lampeggio</option>
+              <option value="steady">Accensione fissa</option>
+            </select>
+          </label>
+          <label>Durata (secondi)
+            <input id="sig-dur" type="number" inputmode="numeric" min="1" max="3600">
+          </label>
+          <label id="blink-row">Velocità lampeggio (millisecondi acceso / spento)
+            <input id="sig-blink" type="number" inputmode="numeric" min="100" max="5000" step="50">
+          </label>
+          <label>Se arriva un altro ordine durante la segnalazione
+            <select id="sig-onnew">
+              <option value="restart">La segnalazione riparte da capo</option>
+              <option value="ignore">Continua senza cambiare</option>
+              <option value="queue">Segue un'altra segnalazione completa</option>
+            </select>
+          </label>
+          <button id="btn-sig" class="btn primary">Salva</button>
+          <p id="sig-msg" class="msg" hidden></p>
+        </div>
+        <div class="card">
+          <h2>Prova</h2>
+          <p class="note">La prova dei faretti dura 10 secondi e non modifica l'ID di riferimento.</p>
+          <div class="grid2">
+            <button class="btn" data-test="1">Faretto 1</button>
+            <button class="btn" data-test="2">Faretto 2</button>
+            <button class="btn" data-test="both">Entrambi</button>
+            <button class="btn" data-test="off">Spegni prova</button>
+          </div>
+          <button id="btn-sigtest" class="btn">Prova segnalazione completa</button>
+          <button id="btn-stop" class="btn danger">Ferma segnalazione</button>
+          <p id="test-msg" class="msg" hidden></p>
+        </div>
+      </section>
+
+      <!-- ALTRO -->
+      <section id="tab-altro" class="tabpane" hidden>
+        <div class="card">
+          <h2>Dispositivo</h2>
+          <dl class="kv">
+            <dt>Nome</dt><dd id="dev-name">—</dd>
+            <dt>Firmware</dt><dd id="dev-fw">—</dd>
+            <dt>Acceso da</dt><dd id="dev-up">—</dd>
+            <dt>Memoria libera</dt><dd id="dev-heap">—</dd>
+          </dl>
+        </div>
+        <div class="card">
+          <h2>Telefoni</h2>
+          <button id="btn-pair" class="btn">Consenti un altro telefono (5 minuti)</button>
+          <button id="btn-unpair" class="btn">Rimuovi gli altri telefoni</button>
+        </div>
+        <div class="card">
+          <h2>Modifica e ripristino</h2>
+          <button id="btn-forget" class="btn">Dimentica la rete Wi-Fi</button>
+          <button id="btn-idclear" class="btn">Azzera l'ID di riferimento</button>
+          <p class="note">Dopo l'azzeramento il prossimo ID ricevuto diventa il riferimento, senza segnalazione.</p>
+          <button id="btn-factory" class="btn danger">Ripristino configurazione</button>
+          <p class="note">Cancella Wi-Fi, servizio, impostazioni dei faretti e telefoni autorizzati.
+            L'ultimo ID resta memorizzato. Lo stesso ripristino si ottiene tenendo premuto BOOT per 10 secondi.
+            Dopo il ripristino, su iPhone apri <b>Impostazioni › Bluetooth</b>, tocca ⓘ accanto al
+            dispositivo e scegli <b>Dissocia questo dispositivo</b>.</p>
+          <p id="altro-msg" class="msg" hidden></p>
+        </div>
+        <button id="btn-disconnect" class="btn">Disconnetti</button>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

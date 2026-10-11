@@ -1,6 +1,6 @@
 // Interfaccia ULTIMOKM. Aprire con ?demo=1 per provarla senza dispositivo.
 import {
-  API_OUTCOMES, DECISIONS, FakeFirmware, WIFI_STATES, connectBluetooth, messageFor,
+  API_OUTCOMES, DECISIONS, FakeFirmware, WIFI_STATES, connectBluetooth, messageFor, renderEffect,
 } from './protocol.js';
 
 const $ = (id) => document.getElementById(id);
@@ -178,8 +178,9 @@ async function refreshStatus() {
 }
 
 function renderStatus(s, d) {
-  $('led1').classList.toggle('on', !!s.l.o1);
-  $('led2').classList.toggle('on', !!s.l.o2);
+  const level = (v) => (v === true ? 255 : Number(v) || 0);
+  setDot($('led1'), level(s.l.o1));
+  setDot($('led2'), level(s.l.o2));
   let sig = 'In attesa di nuovi ordini';
   if (s.l.t) sig = 'Prova faretti in corso';
   else if (s.l.s) sig = `Nuovo ordine! Segnalazione ancora per ${s.l.r} s` + (s.l.q ? ` (+${s.l.q} in coda)` : '');
@@ -224,8 +225,8 @@ async function loadConfig() {
   $('sig-blink').value = c.k;
   $('sig-onnew').value = c.n;
   $('sig-idle').value = c.ri === false ? 'off' : 'on';
-  show($('blink-row'), c.m === 'blink');
   updateSteadyLabel();
+  updateModeUi();
   $('wifi-current').textContent = c.ws ? c.ws + (c.wh ? ' (nascosta)' : '') : 'Nessuna rete configurata';
 }
 
@@ -314,6 +315,33 @@ async function saveWifi() {
 
 function num(id) { return Number($(id).value); }
 
+function updateModeUi() {
+  show($('blink-row'), $('sig-mode').value !== 'steady');
+}
+
+// Anteprima animata dell'effetto scelto (stessa logica del firmware).
+let previewStart = performance.now();
+function setDot(el, level) {
+  const on = level > 0;
+  el.classList.toggle('on', on);
+  el.style.opacity = on ? String(0.25 + (0.75 * level) / 255) : '';
+}
+function animatePreview(now) {
+  const pane = $('tab-faretti');
+  if (pane && !pane.hidden) {
+    const mode = $('sig-mode').value;
+    const base = Math.min(5000, Math.max(100, num('sig-blink') || 500));
+    const idle = $('sig-idle').value === 'on';
+    const cycle = mode === 'show' ? 36 * base : 8 * base;
+    const t = (now - previewStart) % (cycle + 1500);
+    // Ogni ciclo: segnalazione, poi 1,5 s di riposo.
+    const [a, b] = t < cycle ? renderEffect(mode, Math.floor(t), base, idle) : [idle ? 255 : 0, idle ? 255 : 0];
+    setDot($('pv1'), a);
+    setDot($('pv2'), b);
+  }
+  requestAnimationFrame(animatePreview);
+}
+
 // Con i faretti accesi a riposo, la segnalazione "fissa" li spegne per la durata.
 function updateSteadyLabel() {
   $('opt-steady').textContent = $('sig-idle').value === 'on'
@@ -363,7 +391,7 @@ function wire() {
     u: $('api-url').value.trim(), i: num('api-interval'), b: num('api-backoff'),
   }), 'Salvato. Nuova richiesta in corso.');
 
-  $('sig-mode').onchange = () => show($('blink-row'), $('sig-mode').value === 'blink');
+  $('sig-mode').onchange = () => { updateModeUi(); previewStart = performance.now(); };
   $('btn-sig').onclick = () => run($('btn-sig'), $('sig-msg'), () => link.request('sig', {
     m: $('sig-mode').value, d: num('sig-dur'), k: num('sig-blink'), n: $('sig-onnew').value,
     ri: $('sig-idle').value === 'on',
@@ -405,3 +433,4 @@ function wire() {
 }
 
 wire();
+requestAnimationFrame(animatePreview);

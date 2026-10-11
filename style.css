@@ -123,6 +123,9 @@ code, .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 
 .led { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--led-off); transition: background .1s; }
 .dot.on { background: var(--led-on); box-shadow: 0 0 12px var(--led-on); }
+.preview { display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 10px; }
+.preview .leds { margin: 0; }
 .big-status { font-size: 17px; font-weight: 600; }
 
 .nets { list-style: none; padding: 0; margin: 8px 0 0; }

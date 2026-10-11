@@ -91,6 +91,55 @@ export const DECISIONS = {
   nuovo_ordine: 'Nuovo ordine rilevato',
 };
 
+// Copia della logica di firmware/UltimoKM/src/core/effects.cpp, per l'anteprima
+// nell'app. Restituisce [luminosita' faretto 1, faretto 2] in 0..255.
+export const SHOW_CYCLE_UNITS = 36;
+
+function triangle(t, period, startHigh) {
+  if (period < 2) period = 2;
+  const x = t % period;
+  const half = Math.floor(period / 2);
+  let v = x < half ? Math.floor((x * 255) / half) : Math.floor(((period - x) * 255) / (period - half));
+  if (v > 255) v = 255;
+  return startHigh ? 255 - v : v;
+}
+
+const onoff = (a, b) => [a ? 255 : 0, b ? 255 : 0];
+const fxAlternate = (t, T) => { const f = Math.floor(t / T) % 2 === 0; return onoff(f, !f); };
+const fxStrobe = (t, T) => { const q = Math.max(1, Math.floor(T / 4)); const on = Math.floor(t / q) % 2 === 0; return onoff(on, on); };
+const fxHeartbeat = (t, T) => {
+  const p = t % (4 * T), f = Math.floor((T * 2) / 5);
+  const on = p < f || (p >= 2 * f && p < 3 * f);
+  return onoff(on, on);
+};
+const fxBreathe = (t, T, idle) => { const v = triangle(t, 4 * T, idle); return [v, v]; };
+const fxWave = (t, T) => { const a = triangle(t, 4 * T, false); return [255 - a, a]; };
+
+export function renderEffect(mode, t, baseMs, idle) {
+  const T = baseMs > 0 ? baseMs : 500;
+  switch (mode) {
+    case 'steady': return onoff(!idle, !idle);
+    case 'alternate': return fxAlternate(t, T);
+    case 'breathe': return fxBreathe(t, T, idle);
+    case 'heartbeat': return fxHeartbeat(t, T);
+    case 'wave': return fxWave(t, T);
+    case 'show': {
+      const u = Math.floor(t / T) % SHOW_CYCLE_UNITS;
+      const local = t % (SHOW_CYCLE_UNITS * T);
+      if (u < 8) return fxAlternate(local, Math.max(1, Math.floor(T / 2)));
+      if (u < 12) return fxStrobe(local - 8 * T, T);
+      if (u < 20) return fxWave(local - 12 * T, T);
+      if (u < 28) return fxHeartbeat(local - 20 * T, T);
+      return fxBreathe(local - 28 * T, T, false);
+    }
+    default: {
+      const first = Math.floor(t / T) % 2 === 0;
+      const on = first ? !idle : idle;
+      return onoff(on, on);
+    }
+  }
+}
+
 export function messageFor(code) {
   return MESSAGES[code] || `Errore: ${code}`;
 }

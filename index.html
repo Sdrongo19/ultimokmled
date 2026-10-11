@@ -166,16 +166,28 @@
               <option value="off">Spenti</option>
             </select>
           </label>
-          <label>Modalità della segnalazione
+          <label>Effetto della segnalazione
             <select id="sig-mode">
               <option value="blink">Lampeggio</option>
+              <option value="alternate">Alternato (faretto 1 ↔ 2)</option>
+              <option value="breathe">Respiro (dissolvenza)</option>
+              <option value="heartbeat">Doppio flash</option>
+              <option value="wave">Onda (la luce passa da un faretto all'altro)</option>
+              <option value="show">Coreografia (sequenza di effetti)</option>
               <option value="steady" id="opt-steady">Accensione fissa</option>
             </select>
           </label>
+          <div class="preview">
+            <span class="note">Anteprima</span>
+            <div class="leds">
+              <div class="led"><span id="pv1" class="dot"></span>1</div>
+              <div class="led"><span id="pv2" class="dot"></span>2</div>
+            </div>
+          </div>
           <label>Durata (secondi)
             <input id="sig-dur" type="number" inputmode="numeric" min="1" max="3600">
           </label>
-          <label id="blink-row">Velocità lampeggio (millisecondi acceso / spento)
+          <label id="blink-row">Velocità dell'effetto (tempo base in millisecondi, predefinito 500)
             <input id="sig-blink" type="number" inputmode="numeric" min="100" max="5000" step="50">
           </label>
           <label>Se arriva un altro ordine durante la segnalazione

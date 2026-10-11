@@ -160,10 +160,16 @@
       <section id="tab-faretti" class="tabpane" hidden>
         <div class="card">
           <h2>Segnalazione di un nuovo ordine</h2>
-          <label>Modalità
+          <label>Faretti a riposo (nessun nuovo ordine)
+            <select id="sig-idle">
+              <option value="on">Accesi</option>
+              <option value="off">Spenti</option>
+            </select>
+          </label>
+          <label>Modalità della segnalazione
             <select id="sig-mode">
               <option value="blink">Lampeggio</option>
-              <option value="steady">Accensione fissa</option>
+              <option value="steady" id="opt-steady">Accensione fissa</option>
             </select>
           </label>
           <label>Durata (secondi)

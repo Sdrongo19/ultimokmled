@@ -180,7 +180,7 @@ async function refreshStatus() {
 function renderStatus(s, d) {
   $('led1').classList.toggle('on', !!s.l.o1);
   $('led2').classList.toggle('on', !!s.l.o2);
-  let sig = 'Spenti';
+  let sig = 'In attesa di nuovi ordini';
   if (s.l.t) sig = 'Prova faretti in corso';
   else if (s.l.s) sig = `Nuovo ordine! Segnalazione ancora per ${s.l.r} s` + (s.l.q ? ` (+${s.l.q} in coda)` : '');
   $('st-signal').textContent = sig;
@@ -223,7 +223,9 @@ async function loadConfig() {
   $('sig-dur').value = c.d;
   $('sig-blink').value = c.k;
   $('sig-onnew').value = c.n;
+  $('sig-idle').value = c.ri === false ? 'off' : 'on';
   show($('blink-row'), c.m === 'blink');
+  updateSteadyLabel();
   $('wifi-current').textContent = c.ws ? c.ws + (c.wh ? ' (nascosta)' : '') : 'Nessuna rete configurata';
 }
 
@@ -312,6 +314,12 @@ async function saveWifi() {
 
 function num(id) { return Number($(id).value); }
 
+// Con i faretti accesi a riposo, la segnalazione "fissa" li spegne per la durata.
+function updateSteadyLabel() {
+  $('opt-steady').textContent = $('sig-idle').value === 'on'
+    ? 'Spegnimento per la durata impostata' : 'Accensione fissa';
+}
+
 // ------------------------------------------------------------------ eventi
 
 function selectTab(name) {
@@ -358,7 +366,9 @@ function wire() {
   $('sig-mode').onchange = () => show($('blink-row'), $('sig-mode').value === 'blink');
   $('btn-sig').onclick = () => run($('btn-sig'), $('sig-msg'), () => link.request('sig', {
     m: $('sig-mode').value, d: num('sig-dur'), k: num('sig-blink'), n: $('sig-onnew').value,
+    ri: $('sig-idle').value === 'on',
   }), 'Salvato.');
+  $('sig-idle').onchange = updateSteadyLabel;
 
   document.querySelectorAll('[data-test]').forEach((b) => {
     b.onclick = () => run(b, $('test-msg'), () => link.request('test', { t: b.dataset.test }),

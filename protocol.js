@@ -249,12 +249,12 @@ export class FakeFirmware {
     this.owner = owner;
     this.pairing = pairing;
     this.cfg = { ws: '', wh: false, wp: false, u: 'https://www.ultimo-km.it/api/ordini/ultimo', i: 10, b: 300,
-      m: 'blink', d: 60, k: 500, n: 'restart', http: false };
+      m: 'blink', d: 60, k: 500, n: 'restart', ri: true, http: false };
     this.saved = '';
     this.received = '';
     this.decision = 'nessuna';
     this.wifi = { st: 'non_configurato', ss: '', ip: '', rs: 0, e: '' };
-    this.led = { s: false, r: 0, q: 0, t: false, o1: false, o2: false };
+    this.led = { s: false, r: 0, q: 0, t: false, o1: true, o2: true };
     this.nets = [
       { s: 'Negozio-WiFi', r: -48, o: false },
       { s: 'FRITZ!Box 7530', r: -63, o: false },
@@ -340,7 +340,7 @@ export class FakeFirmware {
       case 'sig':
         if (m.d < 1 || m.d > 3600) return err('durata_non_valida');
         if (m.k < 100 || m.k > 5000) return err('lampeggio_non_valido');
-        Object.assign(this.cfg, { m: m.m, d: m.d, k: m.k, n: m.n });
+        Object.assign(this.cfg, { m: m.m, d: m.d, k: m.k, n: m.n, ri: m.ri !== false });
         return ok();
       case 'test':
         this.led = { ...this.led, t: m.t !== 'off', o1: m.t === '1' || m.t === 'both', o2: m.t === '2' || m.t === 'both' };
@@ -349,7 +349,7 @@ export class FakeFirmware {
         this.led = { ...this.led, s: true, r: this.cfg.d, o1: true, o2: true };
         return ok({ t: 'avviata' });
       case 'stop':
-        this.led = { s: false, r: 0, q: 0, t: false, o1: false, o2: false };
+        this.led = { s: false, r: 0, q: 0, t: false, o1: this.cfg.ri, o2: this.cfg.ri };
         return ok();
       case 'poll':
         return this.wifi.st === 'connesso' ? ok() : err('wifi_non_connesso');
